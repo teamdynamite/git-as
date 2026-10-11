@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-const usage = `usage: git as [<profile> [--global]]
+const usage = `usage: git as [<profile> [--local]]
        git as add <profile> --name <name> --email <email> [--signingkey <key>] [--sshcommand <cmd>]
        git as remove <profile>
        git as list
@@ -19,8 +19,8 @@ const usage = `usage: git as [<profile> [--global]]
 Switch the git identity used for commits.
 
   git as                      show the current identity and list profiles
-  git as <profile>            apply a profile to the current repository
-  git as <profile> --global   apply a profile globally
+  git as <profile>            apply a profile globally
+  git as <profile> --local    apply a profile to the current repository only
   git as add <profile> ...    create or replace a profile
   git as remove <profile>     delete a profile
   git as list                 list profiles
@@ -31,7 +31,7 @@ Profiles are stored in the global git config as profile.<name>.*.
 type command struct {
 	action     string // "show", "apply", "add", "remove", "list" or "help"
 	profile    string
-	global     bool
+	local      bool
 	userName   string
 	email      string
 	signingKey string
@@ -116,12 +116,15 @@ func parseArgs(args []string) (command, error) {
 		}
 		return cmd, nil
 	default:
-		pos, flags, err := parseFlags(args, nil, []string{"global"})
+		pos, flags, err := parseFlags(args, nil, []string{"global", "local"})
 		if err != nil {
 			return command{}, err
 		}
+		if flags["global"] != "" && flags["local"] != "" {
+			return command{}, usageErrorf("use either --global or --local, not both")
+		}
 		name, err := oneProfileName(pos)
-		return command{action: "apply", profile: name, global: flags["global"] != ""}, err
+		return command{action: "apply", profile: name, local: flags["local"] != ""}, err
 	}
 }
 

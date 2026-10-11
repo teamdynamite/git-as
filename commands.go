@@ -83,9 +83,9 @@ func apply(cmd command, stdout, stderr io.Writer) error {
 		return fmt.Errorf("profile %q has no name or email; fix it with 'git as add'", p.name)
 	}
 	scope := "global"
-	if !cmd.global {
+	if cmd.local {
 		if !insideRepo() {
-			return errors.New("not inside a git repository (use --global to apply the profile globally)")
+			return errors.New("not inside a git repository (--local needs one)")
 		}
 		scope = "local"
 	}
@@ -105,7 +105,7 @@ func apply(cmd command, stdout, stderr io.Writer) error {
 	}
 	fmt.Fprintf(stdout, "now using %s: %s (%s)\n", p.name, formatIdentity(p.userName, p.email), scope)
 
-	if cmd.global && insideRepo() {
+	if !cmd.local && insideRepo() {
 		localName, _ := configGet("local", "user.name")
 		localEmail, _ := configGet("local", "user.email")
 		if localName != "" || localEmail != "" {

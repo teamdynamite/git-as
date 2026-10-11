@@ -22,12 +22,15 @@ func TestParseArgs(t *testing.T) {
 		{args: []string{"list", "x"}, wantErr: "no arguments"},
 
 		{args: []string{"frank"}, want: command{action: "apply", profile: "frank"}},
-		{args: []string{"frank", "--global"}, want: command{action: "apply", profile: "frank", global: true}},
-		{args: []string{"--global", "frank"}, want: command{action: "apply", profile: "frank", global: true}},
+		{args: []string{"frank", "--global"}, want: command{action: "apply", profile: "frank"}},
+		{args: []string{"frank", "--local"}, want: command{action: "apply", profile: "frank", local: true}},
+		{args: []string{"--local", "frank"}, want: command{action: "apply", profile: "frank", local: true}},
+		{args: []string{"frank", "--local", "--global"}, wantErr: "not both"},
+		{args: []string{"--local"}, wantErr: "missing profile name"},
 		{args: []string{"--global"}, wantErr: "missing profile name"},
 		{args: []string{"frank", "you"}, wantErr: "too many arguments"},
 		{args: []string{"frank", "--global=yes"}, wantErr: "takes no value"},
-		{args: []string{"frank", "--local"}, wantErr: "unknown flag --local"},
+		{args: []string{"frank", "--repo"}, wantErr: "unknown flag --repo"},
 		{args: []string{"frank", "-g"}, wantErr: "unknown flag -g"},
 		{args: []string{"bad name"}, wantErr: "invalid profile name"},
 

@@ -137,7 +137,7 @@ func TestApplyLocal(t *testing.T) {
 	setupEnv(t)
 	addProfiles(t)
 
-	mustRunAs(t, "frank")
+	mustRunAs(t, "frank", "--local")
 	for key, want := range map[string]string{
 		"user.name":       "Frank Reynolds",
 		"user.email":      "frank@example.com",
@@ -162,8 +162,8 @@ func TestApplyUnsetsOptionalValues(t *testing.T) {
 	setupEnv(t)
 	addProfiles(t)
 
-	mustRunAs(t, "frank")
-	mustRunAs(t, "mantis")
+	mustRunAs(t, "frank", "--local")
+	mustRunAs(t, "mantis", "--local")
 	if got := configValue(t, "local", "user.email"); got != "mantis@example.com" {
 		t.Errorf("local user.email = %q", got)
 	}
@@ -178,7 +178,7 @@ func TestApplyGlobal(t *testing.T) {
 	setupEnv(t)
 	addProfiles(t)
 
-	_, stderr, code := runAs(t, "mantis", "--global")
+	_, stderr, code := runAs(t, "mantis")
 	if code != 0 {
 		t.Fatalf("exit %d: %s", code, stderr)
 	}
@@ -192,20 +192,25 @@ func TestApplyGlobal(t *testing.T) {
 		t.Errorf("local user.email = %q, want unset", got)
 	}
 
+	mustRunAs(t, "frank", "--global")
+	if got := configValue(t, "global", "user.email"); got != "frank@example.com" {
+		t.Errorf("global user.email after --global = %q", got)
+	}
+
 	// A local identity overrides the global one, so git as warns about it.
-	mustRunAs(t, "frank")
-	_, stderr, _ = runAs(t, "mantis", "--global")
+	mustRunAs(t, "frank", "--local")
+	_, stderr, _ = runAs(t, "mantis")
 	if !strings.Contains(stderr, "overrides the global one") {
 		t.Errorf("no override note, stderr: %q", stderr)
 	}
 }
 
-func TestApplyGlobalOutsideRepo(t *testing.T) {
+func TestApplyOutsideRepo(t *testing.T) {
 	setupEnv(t)
 	addProfiles(t)
 	t.Chdir(t.TempDir())
 
-	mustRunAs(t, "frank", "--global")
+	mustRunAs(t, "frank")
 	if got := configValue(t, "global", "user.name"); got != "Frank Reynolds" {
 		t.Errorf("global user.name = %q", got)
 	}
@@ -254,7 +259,7 @@ func TestErrors(t *testing.T) {
 	}{
 		{"unknown profile", "", []string{"nobody"}, 1, `no profile named "nobody"`},
 		{"remove unknown profile", "", []string{"remove", "nobody"}, 1, `no profile named "nobody"`},
-		{"outside repo", notRepo, []string{"frank"}, 1, "not inside a git repository"},
+		{"--local outside repo", notRepo, []string{"frank", "--local"}, 1, "not inside a git repository"},
 		{"reserved name", "", []string{"add", "remove", "--name", "x", "--email", "y"}, 2, "reserved"},
 		{"unknown flag", "", []string{"frank", "--bogus"}, 2, "unknown flag --bogus"},
 	}
@@ -286,7 +291,7 @@ func TestRunsAsGitSubcommand(t *testing.T) {
 	if !strings.Contains(out, "now using frank") {
 		t.Errorf("git as frank: %q", out)
 	}
-	if got := configValue(t, "local", "user.name"); got != "Frank Reynolds" {
-		t.Errorf("local user.name = %q", got)
+	if got := configValue(t, "global", "user.name"); got != "Frank Reynolds" {
+		t.Errorf("global user.name = %q", got)
 	}
 }
