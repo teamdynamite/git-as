@@ -73,3 +73,7 @@ make test    # run all tests
 ```
 
 The integration tests use a temporary `HOME` and git repository. They never read or write your real git config.
+
+## License
+
+This project is released into the public domain under the [Unlicense](LICENSE). You can use it for any purpose, with no restrictions.
