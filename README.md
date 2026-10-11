@@ -12,7 +12,7 @@ Requires Go 1.24 or later.
 make install
 ```
 
-This installs the binary to `$GOBIN` if it is set, otherwise to `~/bin`. Make sure that directory is on your `PATH`.
+This installs the binary to `~/.local/bin`. Make sure that directory is on your `PATH`. To install somewhere else, set `INSTALL_DIR`, for example `make install INSTALL_DIR=/usr/local/bin`.
 
 ## Setup
 
